@@ -9,6 +9,13 @@ from alembic import context
 
 from src.config import settings
 from src.common.models import Base
+from src.users.models import *  # noqa: F401,F403
+from src.visits.models import *  # noqa: F401,F403
+from src.branches.models import *  # noqa: F401,F403
+from src.employees.models import *  # noqa: F401,F403
+from src.subscriptions.models import *  # noqa: F401,F403
+from src.tariffs.models import *  # noqa: F401,F403
+from src.promotions.models import *  # noqa: F401,F403
 
 
 # this is the Alembic Config object, which provides
