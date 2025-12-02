@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card card--narrow">
+    <p class="eyebrow">Регистрация</p>
+    <h1 class="heading">Создать аккаунт</h1>
+    <p class="text-muted">Заполните данные для регистрации</p>
+    <form class="form" method="post" action="/register">
+        <label class="field">
+            <span class="field__label">Имя</span>
+            <input type="text" name="first_name" placeholder="Иван" required>
+        </label>
+        <label class="field">
+            <span class="field__label">Фамилия</span>
+            <input type="text" name="last_name" placeholder="Иванов" required>
+        </label>
+        <label class="field">
+            <span class="field__label">Электронная почта</span>
+            <input type="email" name="email" placeholder="you@example.com" required>
+        </label>
+        <label class="field">
+            <span class="field__label">Пароль</span>
+            <input type="password" name="password" placeholder="••••••••" required>
+        </label>
+        <div class="form__actions">
+            <button class="btn btn--primary" type="submit">Зарегистрироваться</button>
+            <a class="btn btn--ghost" href="{{ url_for('login_page') }}">У меня есть аккаунт</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

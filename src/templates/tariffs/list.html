@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+    <div class="card__header">
+        <div>
+            <p class="eyebrow">Тарифы</p>
+            <h1 class="heading">Доступные тарифные планы</h1>
+        </div>
+        <form method="get" class="filters filters--compact">
+            <label class="field">
+                <span class="field__label">Тип</span>
+                <select name="tariff_type_id">
+                    <option value="">Все</option>
+                    {% for t in filters.tariff_types %}
+                        <option value="{{ t.tariff_type_id }}"
+                            {% if filters.selected_tariff_type_id and filters.selected_tariff_type_id == t.tariff_type_id %}selected{% endif %}>
+                            {{ t.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="field">
+                <span class="field__label">Срок</span>
+                <select name="validity_period_id">
+                    <option value="">Любой</option>
+                    {% for period in filters.validity_periods %}
+                        <option value="{{ period.tariff_validity_period_id }}"
+                            {% if filters.selected_validity_period_id and filters.selected_validity_period_id == period.tariff_validity_period_id %}selected{% endif %}>
+                            {{ period.duration_days }} дн.
+                        </option>
+                    {% endfor %}
+                </select>
+            </label>
+            <div class="filters__actions">
+                <button class="btn btn--primary" type="submit">Применить</button>
+                <a class="btn btn--ghost" href="{{ url_for('list_tariffs') }}">Сбросить</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="grid grid--three">
+        {% for tariff in tariffs %}
+            <a class="card card--interactive" href="{{ url_for('tariff_details', tariff_id=tariff.tariff_id) }}">
+                <div class="card__badge">
+                    <span class="pill {% if tariff.is_available %}pill--success{% else %}pill--muted{% endif %}">
+                        {% if tariff.is_available %}Доступен{% else %}Временно недоступен{% endif %}
+                    </span>
+                </div>
+                <h2 class="card__title">{{ tariff.name }}</h2>
+                {% if tariff.description %}<p class="text-muted">{{ tariff.description }}</p>{% endif %}
+                <div class="info-list">
+                    <div class="info-list__item">
+                        <span class="meta">Тип</span>
+                        <span>{{ tariff.tariff_type.name }}</span>
+                    </div>
+                    <div class="info-list__item">
+                        <span class="meta">Срок</span>
+                        <span>{{ tariff.validity_period.duration_days }} дней</span>
+                    </div>
+                    <div class="info-list__item">
+                        <span class="meta">Цена</span>
+                        <span>{{ tariff.price }} ₽</span>
+                    </div>
+                </div>
+            </a>
+        {% else %}
+            <p class="empty">Тарифы не найдены.</p>
+        {% endfor %}
+    </div>
+    {% if pagination %}
+    {% set base_url = url_for('list_tariffs') %}
+    {% set query = [] %}
+    {% if filters.selected_tariff_type_id %}{% set _ = query.append('tariff_type_id=' ~ filters.selected_tariff_type_id) %}{% endif %}
+    {% if filters.selected_validity_period_id %}{% set _ = query.append('validity_period_id=' ~ filters.selected_validity_period_id) %}{% endif %}
+    {% set query_str = ('&'.join(query)) %}
+    {% set qs = ('?' ~ query_str ~ ('&' if query_str else '') ~ 'per_page=' ~ pagination.per_page) %}
+    <div class="pagination">
+        {% if pagination.has_prev %}
+            <a class="btn btn--ghost" href="{{ base_url }}{{ qs }}&page={{ pagination.prev_page }}">‹ Назад</a>
+        {% else %}
+            <span class="btn btn--ghost btn--disabled">‹ Назад</span>
+        {% endif %}
+        <span class="pagination__info">Страница {{ pagination.page }} / {{ pagination.pages }} · {{ pagination.total }} элементов</span>
+        {% if pagination.has_next %}
+            <a class="btn btn--ghost" href="{{ base_url }}{{ qs }}&page={{ pagination.next_page }}">Вперед ›</a>
+        {% else %}
+            <span class="btn btn--ghost btn--disabled">Вперед ›</span>
+        {% endif %}
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

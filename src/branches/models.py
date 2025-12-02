@@ -7,6 +7,10 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.common.models import Base
+# Ensure association tables/models are registered in metadata before relationship resolution
+from src.employees.models import EmployeeBranchModel  # noqa: F401
+from src.subscriptions.models import SubscriptionModel  # noqa: F401
+from src.visits.models import VisitModel  # noqa: F401
 
 
 class DistrictModel(Base):

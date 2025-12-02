@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+    <div class="card__header">
+        <div>
+            <p class="eyebrow">Филиал</p>
+            <h1 class="heading">{{ branch.name }}</h1>
+        </div>
+        <div class="pill {% if branch.is_active %}pill--success{% else %}pill--muted{% endif %}">
+            {% if branch.is_active %}Открыт{% else %}Временно закрыт{% endif %}
+        </div>
+    </div>
+
+    <div class="grid grid--two">
+        <div>
+            <h2 class="section-title">Описание</h2>
+            <p class="text">{{ branch.description or "Описание появится позже." }}</p>
+        </div>
+        <div class="info-list">
+            <div class="info-list__item">
+                <span class="meta">Район</span>
+                <span>{{ branch.district.name }}</span>
+            </div>
+            <div class="info-list__item">
+                <span class="meta">Адрес</span>
+                <span>{{ branch.address }}</span>
+            </div>
+            {% if branch.contacts %}
+            <div class="info-list__item">
+                <span class="meta">Контакты</span>
+                <span>{{ branch.contacts }}</span>
+            </div>
+            {% endif %}
+            {% if branch.operating_hours %}
+            <div class="info-list__item">
+                <span class="meta">График работы</span>
+                <span>{{ branch.operating_hours }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

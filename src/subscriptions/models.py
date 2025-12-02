@@ -8,6 +8,9 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.common.models import Base
+# Register related models in metadata before mapper configuration
+from src.users.models import UserModel  # noqa: F401
+from src.tariffs.models import TariffModel  # noqa: F401
 
 
 class SubscriptionStatusModel(Base):

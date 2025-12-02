@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+    <div class="card__header">
+        <div>
+            <p class="eyebrow">Промо</p>
+            <h1 class="heading">Актуальные предложения</h1>
+        </div>
+        <form method="get" class="filters filters--compact">
+            <label class="field">
+                <span class="field__label">Тип скидки</span>
+                <select name="discount_type_id">
+                    <option value="">Любой</option>
+                    {% for d in filters.discount_types %}
+                        <option value="{{ d.discount_type_id }}"
+                            {% if filters.selected_discount_type_id and filters.selected_discount_type_id == d.discount_type_id %}selected{% endif %}>
+                            {{ d.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="field">
+                <span class="field__label">Статус</span>
+                <select name="active_only">
+                    <option value="true" {% if filters.active_only %}selected{% endif %}>Только активные</option>
+                    <option value="false" {% if not filters.active_only %}selected{% endif %}>Все</option>
+                </select>
+            </label>
+            <div class="filters__actions">
+                <button class="btn btn--primary" type="submit">Применить</button>
+                <a class="btn btn--ghost" href="{{ url_for('list_promotions') }}">Сбросить</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="grid grid--two">
+        {% for promo in promotions %}
+            <a class="card card--interactive" href="{{ url_for('promotion_details', promotion_id=promo.promotion_id) }}">
+                <div class="card__badge">
+                    <span class="pill {% if promo.is_active %}pill--success{% else %}pill--muted{% endif %}">
+                        {% if promo.is_active %}Активна{% else %}Неактивна{% endif %}
+                    </span>
+                    <span class="pill pill--outline">{{ promo.discount_type.name }}</span>
+                </div>
+                <h2 class="card__title">{{ promo.name }}</h2>
+                {% if promo.description %}<p class="text-muted">{{ promo.description }}</p>{% endif %}
+                <div class="info-list">
+                    <div class="info-list__item">
+                        <span class="meta">Период</span>
+                        <span class="date-range">
+                            <span class="date-range__item">
+                                <span class="date-range__label">c</span>
+                                <span class="date-range__value">{{ promo.starts_at.strftime('%d.%m.%Y') }}</span>
+                            </span>
+                            <span class="date-range__divider">—</span>
+                            <span class="date-range__item">
+                                <span class="date-range__label">по</span>
+                                <span class="date-range__value">{{ promo.ends_at.strftime('%d.%m.%Y') }}</span>
+                            </span>
+                        </span>
+                    </div>
+                    <div class="info-list__item">
+                        <span class="meta">Скидка</span>
+                        <span>{{ promo.discount_value }}</span>
+                    </div>
+                    <div class="info-list__item">
+                        <span class="meta">Филиалов</span>
+                        <span>{{ promo.branch_names | length }}</span>
+                    </div>
+                    <div class="info-list__item">
+                        <span class="meta">Тарифов</span>
+                        <span>{{ promo.tariff_names | length }}</span>
+                    </div>
+                </div>
+            </a>
+        {% else %}
+            <p class="empty">Акции не найдены.</p>
+        {% endfor %}
+    </div>
+    {% if pagination %}
+    {% set base_url = url_for('list_promotions') %}
+    {% set query = [] %}
+    {% if filters.selected_discount_type_id %}{% set _ = query.append('discount_type_id=' ~ filters.selected_discount_type_id) %}{% endif %}
+    {% set _ = query.append('active_only=' ~ ('true' if filters.active_only else 'false')) %}
+    {% set query_str = ('&'.join(query)) %}
+    {% set qs = ('?' ~ query_str ~ ('&' if query_str else '') ~ 'per_page=' ~ pagination.per_page) %}
+    <div class="pagination">
+        {% if pagination.has_prev %}
+            <a class="btn btn--ghost" href="{{ base_url }}{{ qs }}&page={{ pagination.prev_page }}">‹ Назад</a>
+        {% else %}
+            <span class="btn btn--ghost btn--disabled">‹ Назад</span>
+        {% endif %}
+        <span class="pagination__info">Страница {{ pagination.page }} / {{ pagination.pages }} · {{ pagination.total }} элементов</span>
+        {% if pagination.has_next %}
+            <a class="btn btn--ghost" href="{{ base_url }}{{ qs }}&page={{ pagination.next_page }}">Вперед ›</a>
+        {% else %}
+            <span class="btn btn--ghost btn--disabled">Вперед ›</span>
+        {% endif %}
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

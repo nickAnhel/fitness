@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+    <div class="card__header">
+        <div>
+            <p class="eyebrow">Промо-акция</p>
+            <h1 class="heading">{{ promotion.name }}</h1>
+        </div>
+        <div class="card__badge">
+            <span class="pill {% if promotion.is_active %}pill--success{% else %}pill--muted{% endif %}">
+                {% if promotion.is_active %}Активна{% else %}Неактивна{% endif %}
+            </span>
+            <span class="pill pill--outline">{{ promotion.discount_type.name }}</span>
+        </div>
+    </div>
+
+    <div class="grid grid--two">
+        <div>
+            <h2 class="section-title">Описание</h2>
+            <p class="text">{{ promotion.description or "Описание появится позже." }}</p>
+        </div>
+        <div class="info-list">
+            <div class="info-list__item">
+                <span class="meta">Период действия</span>
+                <span class="date-range">
+                    <span class="date-range__item">
+                        <span class="date-range__label">c</span>
+                        <span class="date-range__value">{{ promotion.starts_at.strftime('%d.%m.%Y') }}</span>
+                    </span>
+                    <span class="date-range__divider">—</span>
+                    <span class="date-range__item">
+                        <span class="date-range__label">по</span>
+                        <span class="date-range__value">{{ promotion.ends_at.strftime('%d.%m.%Y') }}</span>
+                    </span>
+                </span>
+            </div>
+            <div class="info-list__item">
+                <span class="meta">Размер скидки</span>
+                <span>{{ promotion.discount_value }}</span>
+            </div>
+            {% if promotion.usage_limit %}
+            <div class="info-list__item">
+                <span class="meta">Лимит применений</span>
+                <span>{{ promotion.usage_limit }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="grid grid--two">
+        <div>
+            <h3 class="section-title">Доступно в филиалах</h3>
+            {% if promotion.branch_refs %}
+                <ul class="list">
+                    {% for branch in promotion.branch_refs %}
+                        <li><a class="link" href="{{ url_for('branch_details', branch_id=branch.id) }}">{{ branch.name }}</a></li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted">Филиалы не указаны.</p>
+            {% endif %}
+        </div>
+        <div>
+            <h3 class="section-title">Применимо к тарифам</h3>
+            {% if promotion.tariff_refs %}
+                <ul class="list">
+                    {% for tariff in promotion.tariff_refs %}
+                        <li><a class="link" href="{{ url_for('tariff_details', tariff_id=tariff.id) }}">{{ tariff.name }}</a></li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted">Тарифы не указаны.</p>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

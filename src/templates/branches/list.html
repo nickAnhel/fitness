@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+    <div class="card__header">
+        <div>
+            <p class="eyebrow">Список филиалов</p>
+            <h1 class="heading">Филиалы сети</h1>
+        </div>
+        <form method="get" class="filters">
+            <label class="field">
+                <span class="field__label">Район</span>
+                <select name="district_id">
+                    <option value="">Все районы</option>
+                    {% for district in filters.districts %}
+                        <option value="{{ district.district_id }}"
+                                {% if filters.selected_district_id and filters.selected_district_id == district.district_id %}selected{% endif %}>
+                            {{ district.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </label>
+            <div class="filters__actions">
+                <button class="btn btn--primary" type="submit">Применить</button>
+                <a class="btn btn--ghost" href="{{ url_for('list_branches') }}">Сбросить</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="grid grid--three">
+        {% for branch in branches %}
+            <a class="card card--interactive" href="{{ url_for('branch_details', branch_id=branch.branch_id) }}">
+                <div class="card__badge">
+                    <span class="pill {% if branch.is_active %}pill--success{% else %}pill--muted{% endif %}">
+                        {% if branch.is_active %}Открыт{% else %}Временно закрыт{% endif %}
+                    </span>
+                </div>
+                <h2 class="card__title">{{ branch.name }}</h2>
+                {% if branch.description %}<p class="text-muted">{{ branch.description }}</p>{% endif %}
+                <p class="meta">Адрес: {{ branch.address }}</p>
+                <p class="meta">Район: {{ branch.district.name }}</p>
+                {% if branch.operating_hours %}<p class="meta">График: {{ branch.operating_hours }}</p>{% endif %}
+            </a>
+        {% else %}
+            <p class="empty">Филиалы не найдены.</p>
+        {% endfor %}
+    </div>
+    {% if pagination %}
+    {% set base_url = url_for('list_branches') %}
+    {% set query = [] %}
+    {% if filters.selected_district_id %}{% set _ = query.append('district_id=' ~ filters.selected_district_id) %}{% endif %}
+    {% set query_str = ('&'.join(query)) %}
+    {% set qs = ('?' ~ query_str ~ ('&' if query_str else '') ~ 'per_page=' ~ pagination.per_page) %}
+    <div class="pagination">
+        {% if pagination.has_prev %}
+            <a class="btn btn--ghost" href="{{ base_url }}{{ qs }}&page={{ pagination.prev_page }}">‹ Назад</a>
+        {% else %}
+            <span class="btn btn--ghost btn--disabled">‹ Назад</span>
+        {% endif %}
+        <span class="pagination__info">Страница {{ pagination.page }} / {{ pagination.pages }} · {{ pagination.total }} элементов</span>
+        {% if pagination.has_next %}
+            <a class="btn btn--ghost" href="{{ base_url }}{{ qs }}&page={{ pagination.next_page }}">Вперед ›</a>
+        {% else %}
+            <span class="btn btn--ghost btn--disabled">Вперед ›</span>
+        {% endif %}
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

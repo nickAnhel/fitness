@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }} | Сеть фитнес-клубов</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}">
+</head>
+<body class="page">
+<div class="layout">
+    <header class="layout__header">
+        <div class="logo">FIT</div>
+        <div class="site-title">
+            <div class="site-title__caption">Сеть фитнес-клубов</div>
+            <div class="site-title__subtitle">Движение. Энергия. Результат.</div>
+        </div>
+        <div class="auth-inline">
+            <a class="btn btn--ghost" href="{{ url_for('login_page') }}">Войти</a>
+            <a class="btn btn--primary" href="{{ url_for('register_page') }}">Регистрация</a>
+        </div>
+    </header>
+
+    <div class="layout__body">
+        {% set current_path = request.url.path %}
+        <nav class="sidebar">
+            <div class="sidebar__section">
+                <div class="sidebar__title">Навигация</div>
+                <a class="sidebar__link {% if current_path == '/about' %}sidebar__link--active{% endif %}" href="{{ url_for('about') }}">О сети</a>
+                <a class="sidebar__link {% if current_path.startswith('/branches') %}sidebar__link--active{% endif %}" href="{{ url_for('list_branches') }}">Филиалы</a>
+                <a class="sidebar__link {% if current_path.startswith('/tariffs') %}sidebar__link--active{% endif %}" href="{{ url_for('list_tariffs') }}">Тарифы</a>
+                <a class="sidebar__link {% if current_path.startswith('/promotions') %}sidebar__link--active{% endif %}" href="{{ url_for('list_promotions') }}">Промо-акции</a>
+                <a class="sidebar__link {% if current_path.startswith('/profile') %}sidebar__link--active{% endif %}" href="{{ url_for('profile_page') }}">Профиль</a>
+            </div>
+        </nav>
+
+        <main class="content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</div>
+</body>
+</html>

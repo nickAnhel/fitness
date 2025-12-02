@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card hero">
+    <div>
+        <p class="eyebrow">О сети</p>
+        <h1 class="heading">Фитнес, который всегда рядом</h1>
+        <p class="lead">
+            Мы объединяем современные тренажерные залы, студии групповых программ и заботу тренеров,
+            чтобы вы могли сосредоточиться на движении и результате.
+        </p>
+    </div>
+    <div class="hero__stats">
+        <div class="stat">
+            <div class="stat__value">{{ counts.branches_total }}</div>
+            <div class="stat__label">Филиалов по городу</div>
+        </div>
+        <div class="stat">
+            <div class="stat__value">{{ counts.tariffs_total }}</div>
+            <div class="stat__label">Тарифных планов</div>
+        </div>
+        <div class="stat">
+            <div class="stat__value">24/7</div>
+            <div class="stat__label">Поддержка клиентов</div>
+        </div>
+    </div>
+</section>
+
+<section class="grid grid--two">
+    <div class="card">
+        <h2 class="section-title">Почему мы</h2>
+        <ul class="list">
+            <li>Современное оборудование и зоны для кросс-тренинга</li>
+            <li>Гибкие тарифы: короткие интенсивные абонементы и долгосрочные планы</li>
+            <li>Тренеры и групповые занятия для любого уровня подготовки</li>
+            <li>Единая карта доступа во все клубы сети</li>
+        </ul>
+    </div>
+    <div class="card">
+        <h2 class="section-title">Как начать</h2>
+        <ol class="list list--ordered">
+            <li>Выберите подходящий клуб на странице «Филиалы»</li>
+            <li>Оцените тариф на странице «Тарифы» и примените фильтр по сроку или типу</li>
+            <li>Посмотрите активные промо-акции и забронируйте подходящее предложение</li>
+        </ol>
+    </div>
+</section>
+
+<section class="grid grid--three">
+    <div class="card">
+        <h2 class="section-title">Инфраструктура и сервис</h2>
+        <ul class="list">
+            <li>Кардио- и силовые зоны с обновлением оборудования каждые 6 месяцев</li>
+            <li>Раздевалки с электронными замками, сауны и зоны восстановления</li>
+            <li>Коворкинг-уголки с Wi‑Fi для тех, кто совмещает работу и тренировки</li>
+        </ul>
+    </div>
+    <div class="card">
+        <h2 class="section-title">Направления тренировок</h2>
+        <ul class="list">
+            <li>Силовые программы и функциональный тренинг</li>
+            <li>Групповые занятия: йога, пилатес, cycling, dance</li>
+            <li>Персональные сессии с коучем и планом питания</li>
+        </ul>
+    </div>
+    <div class="card">
+        <h2 class="section-title">Как использовать промо</h2>
+        <ol class="list list--ordered">
+            <li>Откройте «Промо-акции» и выберите фильтр по типу скидки</li>
+            <li>Проверьте, какие филиалы и тарифы участвуют</li>
+            <li>Оформите выбранный тариф онлайн или на стойке клуба</li>
+        </ol>
+    </div>
+</section>
+{% endblock %}

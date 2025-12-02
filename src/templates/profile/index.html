@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+    <p class="eyebrow">Профиль</p>
+    <h1 class="heading">Личные данные</h1>
+    <form class="form form--split" method="post" action="#">
+        <div class="field">
+            <span class="field__label">Имя</span>
+            <input type="text" name="first_name" value="{{ user.first_name }}" disabled>
+        </div>
+        <div class="field">
+            <span class="field__label">Фамилия</span>
+            <input type="text" name="last_name" value="{{ user.last_name }}" disabled>
+        </div>
+        <div class="field">
+            <span class="field__label">Электронная почта</span>
+            <input type="email" name="email" value="{{ user.email }}" disabled>
+        </div>
+        <div class="field">
+            <span class="field__label">Телефон</span>
+            <input type="text" name="phone" value="{{ user.phone or '' }}" disabled>
+        </div>
+        <div class="form__actions">
+            <button class="btn btn--primary" type="button" disabled>Сохранить изменения</button>
+            <span class="meta">Редактирование будет доступно после подключения авторизации</span>
+        </div>
+    </form>
+</section>
+
+<section class="grid grid--two">
+    <div class="card">
+        <div class="card__header">
+            <div>
+                <p class="eyebrow">Абонементы</p>
+                <h2 class="section-title">Управление абонементами</h2>
+            </div>
+            <div class="card__badge">
+                <a class="btn btn--primary" href="#">Оформить абонемент</a>
+            </div>
+        </div>
+        <form method="get" class="filters">
+            <label class="field">
+                <span class="field__label">Статус</span>
+                <select name="status_id">
+                    <option value="">Все статусы</option>
+                    {% for st in statuses %}
+                        <option value="{{ st.subscription_status_id }}"
+                            {% if selected_status_id and selected_status_id == st.subscription_status_id %}selected{% endif %}>
+                            {{ st.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </label>
+            <div class="filters__actions">
+                <button class="btn btn--ghost" type="submit">Применить</button>
+                <a class="btn btn--ghost" href="{{ url_for('profile_page') }}">Сбросить</a>
+            </div>
+        </form>
+
+        <div class="grid">
+            {% for sub in subscriptions %}
+                <div class="card card--sub">
+                    <div class="card__badge">
+                        <span class="pill pill--outline">{{ sub.status.name }}</span>
+                        <span class="pill pill--muted">с {{ sub.start_date }}</span>
+                    </div>
+                    <h3 class="card__title">{{ sub.tariff_name }}</h3>
+                    <p class="meta">Филиал: {{ sub.branch_name }}</p>
+                    {% if sub.price %}<p class="meta">Цена: {{ sub.price }} ₽</p>{% endif %}
+                </div>
+            {% else %}
+                <p class="empty">Абонементы не найдены.</p>
+            {% endfor %}
+        </div>
+        {% if subscription_pagination %}
+        {% set base_profile_url = url_for('profile_page') %}
+        {% set query = [] %}
+        {% if selected_status_id %}{% set _ = query.append('status_id=' ~ selected_status_id) %}{% endif %}
+        {% if current_month %}{% set _ = query.append('month=' ~ current_month.strftime('%Y-%m')) %}{% endif %}
+        {% set query_str = ('&'.join(query)) %}
+        {% set qs = ('?' ~ query_str ~ ('&' if query_str else '') ~ 'per_page=' ~ subscription_pagination.per_page) %}
+        <div class="pagination">
+            {% if subscription_pagination.has_prev %}
+                <a class="btn btn--ghost" href="{{ base_profile_url }}{{ qs }}&page={{ subscription_pagination.prev_page }}">‹ Назад</a>
+            {% else %}
+                <span class="btn btn--ghost btn--disabled">‹ Назад</span>
+            {% endif %}
+            <span class="pagination__info">Страница {{ subscription_pagination.page }} / {{ subscription_pagination.pages }} · {{ subscription_pagination.total }} абонементов</span>
+            {% if subscription_pagination.has_next %}
+                <a class="btn btn--ghost" href="{{ base_profile_url }}{{ qs }}&page={{ subscription_pagination.next_page }}">Вперед ›</a>
+            {% else %}
+                <span class="btn btn--ghost btn--disabled">Вперед ›</span>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card__header">
+            <div>
+                <p class="eyebrow">Посещения</p>
+                <h2 class="section-title">Календарь посещений</h2>
+            </div>
+        </div>
+        <div class="calendar-nav">
+            {% set base_profile_url = url_for('profile_page') %}
+            <a class="btn btn--ghost" href="{{ base_profile_url }}?month={{ prev_month }}{% if selected_status_id %}&status_id={{ selected_status_id }}{% endif %}">‹ Предыдущий</a>
+            <div class="calendar-nav__title">{{ month_label }}</div>
+            <a class="btn btn--ghost" href="{{ base_profile_url }}?month={{ next_month }}{% if selected_status_id %}&status_id={{ selected_status_id }}{% endif %}">Следующий ›</a>
+        </div>
+        <div class="calendar">
+            {% for day in calendar_days %}
+                <div class="calendar__day {% if day.is_today %}calendar__day--today{% endif %} {% if day.visits > 0 %}calendar__day--active{% endif %}">
+                    <span class="calendar__num">{{ day.day }}</span>
+                    {% if day.visits > 0 %}
+                        <span class="calendar__mark">{{ day.visits }}</span>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        <div class="visit-list">
+            {% for visit in visits %}
+                <div class="visit-row">
+                    <div>
+                        <div class="meta">Дата</div>
+                        <div>{{ visit.entered_at.strftime('%d.%m.%Y') }}</div>
+                    </div>
+                    <div>
+                        <div class="meta">Время</div>
+                        <div>{{ visit.entered_at.strftime('%H:%M') }} — {{ visit.exited_at.strftime('%H:%M') if visit.exited_at else "..." }}</div>
+                    </div>
+                    <div>
+                        <div class="meta">Филиал</div>
+                        <div>{{ visit.branch_name }}</div>
+                    </div>
+                </div>
+            {% else %}
+                <p class="empty">Посещений пока нет.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

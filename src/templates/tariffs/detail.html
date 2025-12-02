@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+    <div class="card__header">
+        <div>
+            <p class="eyebrow">Тариф</p>
+            <h1 class="heading">{{ tariff.name }}</h1>
+        </div>
+        <div class="pill {% if tariff.is_available %}pill--success{% else %}pill--muted{% endif %}">
+            {% if tariff.is_available %}Доступен{% else %}Недоступен{% endif %}
+        </div>
+    </div>
+
+    <div class="grid grid--two">
+        <div>
+            <h2 class="section-title">Описание</h2>
+            <p class="text">{{ tariff.description or "Описание появится позже." }}</p>
+        </div>
+        <div class="info-list">
+            <div class="info-list__item">
+                <span class="meta">Тип</span>
+                <span>{{ tariff.tariff_type.name }}</span>
+            </div>
+            <div class="info-list__item">
+                <span class="meta">Срок действия</span>
+                <span>{{ tariff.validity_period.duration_days }} дней</span>
+            </div>
+            <div class="info-list__item">
+                <span class="meta">Стоимость</span>
+                <span class="price">{{ tariff.price }} ₽</span>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
