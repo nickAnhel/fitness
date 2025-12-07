@@ -14,9 +14,20 @@
             <div class="site-title__caption">Сеть фитнес-клубов</div>
             <div class="site-title__subtitle">Движение. Энергия. Результат.</div>
         </div>
-        <div class="auth-inline">
-            <a class="btn btn--ghost" href="{{ url_for('login_page') }}">Войти</a>
-            <a class="btn btn--primary" href="{{ url_for('register_page') }}">Регистрация</a>
+        <div class="header-actions">
+            {% if request.state.user %}
+                <div class="auth-inline">
+                    <a class="btn btn--ghost" href="{{ url_for('profile_page') }}">Профиль</a>
+                    <form method="post" action="{{ url_for('logout') }}">
+                        <button class="btn btn--primary" type="submit">Выход</button>
+                    </form>
+                </div>
+            {% else %}
+                <div class="auth-inline">
+                    <a class="btn btn--ghost" href="{{ url_for('login_page') }}">Войти</a>
+                    <a class="btn btn--primary" href="{{ url_for('register_page') }}">Регистрация</a>
+                </div>
+            {% endif %}
         </div>
     </header>
 
@@ -29,7 +40,6 @@
                 <a class="sidebar__link {% if current_path.startswith('/branches') %}sidebar__link--active{% endif %}" href="{{ url_for('list_branches') }}">Филиалы</a>
                 <a class="sidebar__link {% if current_path.startswith('/tariffs') %}sidebar__link--active{% endif %}" href="{{ url_for('list_tariffs') }}">Тарифы</a>
                 <a class="sidebar__link {% if current_path.startswith('/promotions') %}sidebar__link--active{% endif %}" href="{{ url_for('list_promotions') }}">Промо-акции</a>
-                <a class="sidebar__link {% if current_path.startswith('/profile') %}sidebar__link--active{% endif %}" href="{{ url_for('profile_page') }}">Профиль</a>
             </div>
         </nav>
 
@@ -38,5 +48,6 @@
         </main>
     </div>
 </div>
+{% block scripts %}{% endblock %}
 </body>
 </html>

@@ -3,26 +3,32 @@
 <section class="card">
     <p class="eyebrow">Профиль</p>
     <h1 class="heading">Личные данные</h1>
-    <form class="form form--split" method="post" action="#">
+    {% if form_error %}
+        <div class="alert alert--error">{{ form_error }}</div>
+    {% endif %}
+    <form class="form form--split" method="post" action="/profile/update">
         <div class="field">
             <span class="field__label">Имя</span>
-            <input type="text" name="first_name" value="{{ user.first_name }}" disabled>
+            <input type="text" name="first_name" value="{{ user.first_name }}" required>
         </div>
         <div class="field">
             <span class="field__label">Фамилия</span>
-            <input type="text" name="last_name" value="{{ user.last_name }}" disabled>
+            <input type="text" name="last_name" value="{{ user.last_name }}" required>
+        </div>
+        <div class="field">
+            <span class="field__label">Отчество</span>
+            <input type="text" name="middle_name" value="{{ user.middle_name or '' }}">
         </div>
         <div class="field">
             <span class="field__label">Электронная почта</span>
-            <input type="email" name="email" value="{{ user.email }}" disabled>
+            <input type="email" name="email" value="{{ user.email }}" required>
         </div>
         <div class="field">
             <span class="field__label">Телефон</span>
-            <input type="text" name="phone" value="{{ user.phone or '' }}" disabled>
+            <input type="text" name="phone" value="{{ user.phone or '' }}">
         </div>
         <div class="form__actions">
-            <button class="btn btn--primary" type="button" disabled>Сохранить изменения</button>
-            <span class="meta">Редактирование будет доступно после подключения авторизации</span>
+            <button class="btn btn--primary" type="submit" style="">Сохранить изменения</button>
         </div>
     </form>
 </section>
@@ -35,7 +41,7 @@
                 <h2 class="section-title">Управление абонементами</h2>
             </div>
             <div class="card__badge">
-                <a class="btn btn--primary" href="#">Оформить абонемент</a>
+                <button class="btn btn--primary" type="button" onclick="openModal('subscription-modal')">Оформить абонемент</button>
             </div>
         </div>
         <form method="get" class="filters">
@@ -67,6 +73,14 @@
                     <h3 class="card__title">{{ sub.tariff_name }}</h3>
                     <p class="meta">Филиал: {{ sub.branch_name }}</p>
                     {% if sub.price %}<p class="meta">Цена: {{ sub.price }} ₽</p>{% endif %}
+                    {% if sub.status.name in ["Создан", "Активен"] %}
+                        <div class="form__actions">
+                            <form id="cancel-sub-{{ sub.subscription_id }}" method="post" action="/profile/subscriptions/cancel">
+                                <input type="hidden" name="subscription_id" value="{{ sub.subscription_id }}">
+                                <button class="btn btn--ghost" type="button" onclick="confirmSubmit('cancel-sub-{{ sub.subscription_id }}', 'Отменить этот абонемент?')">Отменить</button>
+                            </form>
+                        </div>
+                    {% endif %}
                 </div>
             {% else %}
                 <p class="empty">Абонементы не найдены.</p>
@@ -77,6 +91,7 @@
         {% set query = [] %}
         {% if selected_status_id %}{% set _ = query.append('status_id=' ~ selected_status_id) %}{% endif %}
         {% if current_month %}{% set _ = query.append('month=' ~ current_month.strftime('%Y-%m')) %}{% endif %}
+        {% if selected_branch_id %}{% set _ = query.append('branch_id=' ~ selected_branch_id) %}{% endif %}
         {% set query_str = ('&'.join(query)) %}
         {% set qs = ('?' ~ query_str ~ ('&' if query_str else '') ~ 'per_page=' ~ subscription_pagination.per_page) %}
         <div class="pagination">
@@ -101,13 +116,41 @@
                 <p class="eyebrow">Посещения</p>
                 <h2 class="section-title">Календарь посещений</h2>
             </div>
+            <div class="card__badge">
+                <form method="get" class="form form--inline" style="margin: 0;">
+                    <label class="field">
+                        <select name="branch_id" onchange="this.form.submit()">
+                            <option value="">Все филиалы</option>
+                            {% for branch in branches %}
+                                <option value="{{ branch.branch_id }}" {% if selected_branch_id == branch.branch_id %}selected{% endif %}>{{ branch.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    {% if selected_status_id %}<input type="hidden" name="status_id" value="{{ selected_status_id }}">{% endif %}
+                    {% if current_month %}<input type="hidden" name="month" value="{{ current_month.strftime('%Y-%m') }}">{% endif %}
+                </form>
+                <form id="clear-visits-form" method="post" action="/profile/visits/clear">
+                    <button class="btn btn--ghost" type="button" onclick="confirmSubmit('clear-visits-form', 'Очистить всю историю посещений?')">Очистить историю</button>
+                </form>
+            </div>
+        </div>
+        <div class="stats">
+            <div class="stat">
+                <div class="stat__value">{{ visit_stats.total_visits }}</div>
+                <div class="stat__label">Посещений в выбранном месяце</div>
+            </div>
+            <div class="stat">
+                <div class="stat__value">{{ visit_stats.hours }}</div>
+                <div class="stat__label">Часов в зале</div>
+            </div>
         </div>
         <div class="calendar-nav">
             {% set base_profile_url = url_for('profile_page') %}
-            <a class="btn btn--ghost" href="{{ base_profile_url }}?month={{ prev_month }}{% if selected_status_id %}&status_id={{ selected_status_id }}{% endif %}">‹ Предыдущий</a>
+            <a class="btn btn--ghost" href="{{ base_profile_url }}?month={{ prev_month }}{% if selected_status_id %}&status_id={{ selected_status_id }}{% endif %}{% if selected_branch_id %}&branch_id={{ selected_branch_id }}{% endif %}">‹ Предыдущий</a>
             <div class="calendar-nav__title">{{ month_label }}</div>
-            <a class="btn btn--ghost" href="{{ base_profile_url }}?month={{ next_month }}{% if selected_status_id %}&status_id={{ selected_status_id }}{% endif %}">Следующий ›</a>
+            <a class="btn btn--ghost" href="{{ base_profile_url }}?month={{ next_month }}{% if selected_status_id %}&status_id={{ selected_status_id }}{% endif %}{% if selected_branch_id %}&branch_id={{ selected_branch_id }}{% endif %}">Следующий ›</a>
         </div>
+        <div class="visit-toggle"></div>
         <div class="calendar">
             {% for day in calendar_days %}
                 <div class="calendar__day {% if day.is_today %}calendar__day--today{% endif %} {% if day.visits > 0 %}calendar__day--active{% endif %}">
@@ -118,7 +161,10 @@
                 </div>
             {% endfor %}
         </div>
-        <div class="visit-list">
+        <div class="visit-toggle">
+            <button class="btn btn--ghost" type="button" onclick="toggleVisits()">Свернуть / развернуть посещения</button>
+        </div>
+        <div class="visit-list visit-list--hidden" id="visit-list">
             {% for visit in visits %}
                 <div class="visit-row">
                     <div>
@@ -133,6 +179,12 @@
                         <div class="meta">Филиал</div>
                         <div>{{ visit.branch_name }}</div>
                     </div>
+                    <div class="visit-row__actions">
+    <form id="delete-visit-{{ visit.visit_id }}" method="post" action="/profile/visits/delete">
+        <input type="hidden" name="visit_id" value="{{ visit.visit_id }}">
+        <button class="btn btn--ghost" type="button" onclick="confirmSubmit('delete-visit-{{ visit.visit_id }}', 'Удалить запись о посещении?')">Удалить</button>
+    </form>
+                    </div>
                 </div>
             {% else %}
                 <p class="empty">Посещений пока нет.</p>
@@ -140,4 +192,135 @@
         </div>
     </div>
 </section>
+
+<div id="subscription-modal" class="modal" aria-hidden="true">
+    <div class="modal__backdrop" onclick="closeModal('subscription-modal')"></div>
+    <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="subscription-modal-title">
+        <div class="modal__header">
+            <div>
+                <p class="eyebrow">Оформление</p>
+                <h3 class="section-title" id="subscription-modal-title">Новый абонемент</h3>
+            </div>
+            <button class="btn btn--ghost" type="button" aria-label="Закрыть" onclick="closeModal('subscription-modal')">X</button>
+        </div>
+        <form method="post" action="/profile/subscriptions" class="form">
+            <label class="field">
+                <span class="field__label">Филиал</span>
+                <select name="branch_id" required>
+                    {% for branch in branches %}
+                        <option value="{{ branch.branch_id }}">{{ branch.name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="field">
+                <span class="field__label">Тариф</span>
+                <select name="tariff_id" required>
+                    {% for tariff in tariffs %}
+                        <option value="{{ tariff.tariff_id }}">{{ tariff.name }} — {{ tariff.price }} ₽</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="field">
+                <span class="field__label">Дата начала</span>
+                <input type="date" name="start_date" id="start_date_field" required>
+            </label>
+            <div class="form__actions">
+                <button class="btn btn--primary" type="submit">Подтвердить</button>
+                <button class="btn btn--ghost" type="button" onclick="closeModal('subscription-modal')">Отмена</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="confirm-modal" class="modal" aria-hidden="true">
+    <div class="modal__backdrop" onclick="closeConfirm()"></div>
+    <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title">
+        <div class="modal__header">
+            <div>
+                <p class="eyebrow">Подтверждение</p>
+                <h3 class="section-title" id="confirm-modal-title">Вы уверены?</h3>
+            </div>
+            <button class="btn btn--ghost" type="button" aria-label="Закрыть" onclick="closeConfirm()">X</button>
+        </div>
+        <p class="text-muted" id="confirm-modal-message">Подтвердите действие.</p>
+        <div class="form__actions">
+            <button class="btn btn--primary" type="button" onclick="applyConfirm()">Подтвердить</button>
+            <button class="btn btn--ghost" type="button" onclick="closeConfirm()">Отмена</button>
+        </div>
+    </div>
+</div>
+
+<form id="delete-account-form" class="card card--narrow danger-zone" method="post" action="/profile/delete-account">
+    <h3 class="section-title">Опасная зона</h3>
+    <p class="text-muted">Удаление аккаунта приведет к безвозвратному удалению данных.</p>
+    <button class="btn btn--danger" type="button" onclick="confirmSubmit('delete-account-form', 'Удалить аккаунт без возможности восстановления?')">Удалить аккаунт</button>
+</form>
+
+{% block scripts %}
+<script>
+    function openModal(id) {
+        const el = document.getElementById(id);
+        if (el) {
+            el.classList.add('modal--open');
+            el.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('no-scroll');
+        }
+    }
+    function closeModal(id) {
+        const el = document.getElementById(id);
+        if (el) {
+            el.classList.remove('modal--open');
+            el.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('no-scroll');
+        }
+    }
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            closeModal('subscription-modal');
+            closeConfirm();
+        }
+    });
+    const startDateField = document.getElementById('start_date_field');
+    if (startDateField) {
+        const today = new Date().toISOString().split('T')[0];
+        startDateField.value = today;
+        startDateField.min = today;
+    }
+
+    let confirmTarget = null;
+    function confirmSubmit(formId, message) {
+        const form = document.getElementById(formId);
+        if (!form) return;
+        confirmTarget = form;
+        const modal = document.getElementById('confirm-modal');
+        const msgEl = document.getElementById('confirm-modal-message');
+        if (msgEl) msgEl.textContent = message;
+        if (modal) {
+            modal.classList.add('modal--open');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('no-scroll');
+        }
+    }
+    function closeConfirm() {
+        const modal = document.getElementById('confirm-modal');
+        if (modal) {
+            modal.classList.remove('modal--open');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('no-scroll');
+        }
+        confirmTarget = null;
+    }
+    function applyConfirm() {
+        if (confirmTarget) {
+            confirmTarget.submit();
+        }
+        closeConfirm();
+    }
+    function toggleVisits() {
+        const list = document.getElementById('visit-list');
+        if (!list) return;
+        list.classList.toggle('visit-list--hidden');
+    }
+</script>
+{% endblock %}
 {% endblock %}

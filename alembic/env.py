@@ -15,6 +15,7 @@ from src.branches.models import *  # noqa: F401,F403
 from src.employees.models import *  # noqa: F401,F403
 from src.subscriptions.models import *  # noqa: F401,F403
 from src.tariffs.models import *  # noqa: F401,F403
+from src.auth.models import *  # noqa: F401,F403
 from src.promotions.models import *  # noqa: F401,F403
 
 

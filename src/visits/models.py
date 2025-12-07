@@ -15,8 +15,8 @@ class VisitModel(Base):
 
     visit_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
-    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.user_id"))
-    branch_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("branches.branch_id"))
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.user_id", ondelete="CASCADE"))
+    branch_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("branches.branch_id", ondelete="CASCADE"))
 
     entered_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     exited_at: Mapped[datetime | None] = mapped_column(DateTime)

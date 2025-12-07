@@ -27,11 +27,11 @@ class SubscriptionModel(Base):
 
     subscription_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
-    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.user_id"))
-    branch_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("branches.branch_id"))
-    tariff_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tariffs.tariff_id"))
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.user_id", ondelete="CASCADE"))
+    branch_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("branches.branch_id", ondelete="CASCADE"))
+    tariff_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tariffs.tariff_id", ondelete="CASCADE"))
     subscription_status_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("subscription_statuses.subscription_status_id")
+        ForeignKey("subscription_statuses.subscription_status_id", ondelete="CASCADE")
     )
 
     start_date: Mapped[date] = mapped_column(Date, nullable=False)

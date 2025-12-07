@@ -89,8 +89,8 @@ class EmployeeBranchModel(Base):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
 
-    employee_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("employees.employee_id"), nullable=False)
-    branch_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("branches.branch_id"), nullable=False)
+    employee_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("employees.employee_id", ondelete="CASCADE"), nullable=False)
+    branch_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("branches.branch_id", ondelete="CASCADE"), nullable=False)
 
     employee: Mapped["EmployeeModel"] = relationship("EmployeeModel")
     branch: Mapped["BranchModel"] = relationship("BranchModel")

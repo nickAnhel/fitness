@@ -3,10 +3,12 @@ from __future__ import annotations
 import calendar
 import uuid
 from collections import defaultdict
-from datetime import datetime, date, timedelta
+from datetime import date, datetime, timedelta
 
+from src.branches import schemas as branch_schemas
 from src.profile import schemas
 from src.profile.repository import ProfileRepository
+from src.tariffs import schemas as tariff_schemas
 
 
 class ProfileService:
@@ -15,12 +17,14 @@ class ProfileService:
 
     async def get_profile(
         self,
+        user_id: uuid.UUID,
         status_id: uuid.UUID | None = None,
         month: date | None = None,
+        branch_id: uuid.UUID | None = None,
         page: int = 1,
         per_page: int = 5,
     ) -> dict[str, object] | None:
-        user = await self.repository.get_first_user()
+        user = await self.repository.get_user(user_id)
         if not user:
             return None
 
@@ -30,9 +34,13 @@ class ProfileService:
         subs = await self.repository.list_subscriptions_paginated(
             user.user_id, status_id=status_id, limit=safe_per_page, offset=offset
         )
-        visits = await self.repository.list_visits(user.user_id, month=month)
+        visits = await self.repository.list_visits(user.user_id, month=month, branch_id=branch_id)
+        branches = await self.repository.list_branches()
+        tariffs = await self.repository.list_tariffs()
+        default_status = await self.repository.get_default_status()
 
         calendar_days, current_month, prev_month, next_month, month_label = self._build_calendar(visits, month)
+        visit_stats = self._visit_stats(visits)
 
         return {
             "user": schemas.User.model_validate(user),
@@ -46,7 +54,76 @@ class ProfileService:
             "prev_month": prev_month,
             "next_month": next_month,
             "month_label": month_label,
+            "branches": [branch_schemas.Branch.model_validate(b) for b in branches],
+            "tariffs": [tariff_schemas.Tariff.model_validate(t) for t in tariffs],
+            "default_status_id": default_status.subscription_status_id if default_status else None,
+            "selected_branch_id": branch_id,
+            "visit_stats": visit_stats,
         }
+
+    async def update_profile(
+        self,
+        user_id: uuid.UUID,
+        *,
+        first_name: str,
+        last_name: str,
+        email: str,
+        phone: str | None = None,
+        middle_name: str | None = None,
+    ) -> tuple[schemas.User | None, str | None]:
+        if await self.repository.is_email_taken(email, exclude_user_id=user_id):
+            return None, "Этот email уже используется"
+        user = await self.repository.update_user_contacts(
+            user_id=user_id,
+            email=email,
+            phone=phone,
+            first_name=first_name,
+            last_name=last_name,
+            middle_name=middle_name,
+        )
+        if not user:
+            return None, "Пользователь не найден"
+        return schemas.User.model_validate(user), None
+
+    async def create_subscription(
+        self, user_id: uuid.UUID, *, branch_id: uuid.UUID, tariff_id: uuid.UUID, start_date: date
+    ) -> tuple[schemas.Subscription | None, str | None]:
+        status = await self.repository.get_default_status()
+        if not status:
+            return None, "Не найден базовый статус абонемента"
+        branch = await self.repository.get_branch(branch_id)
+        tariff = await self.repository.get_tariff(tariff_id)
+        if not branch or not tariff:
+            return None, "Выбранный филиал или тариф недоступен"
+
+        subscription = await self.repository.create_subscription(
+            user_id=user_id,
+            branch_id=branch_id,
+            tariff_id=tariff_id,
+            status_id=status.subscription_status_id,
+            start_date=start_date,
+        )
+        return self._map_subscription(subscription), None
+
+    async def delete_visit(self, user_id: uuid.UUID, visit_id: uuid.UUID) -> bool:
+        return await self.repository.delete_visit(user_id, visit_id)
+
+    async def clear_visits(self, user_id: uuid.UUID) -> None:
+        await self.repository.delete_all_visits(user_id)
+
+    async def delete_account(self, user_id: uuid.UUID) -> None:
+        await self.repository.delete_user_account(user_id)
+
+    async def cancel_subscription(self, user_id: uuid.UUID, subscription_id: uuid.UUID) -> bool:
+        cancel_status = await self.repository.get_status_by_name("Отменен")
+        if not cancel_status:
+            return False
+        return await self.repository.set_subscription_status(
+            user_id=user_id,
+            subscription_id=subscription_id,
+            status_id=cancel_status.subscription_status_id,
+        )
+
 
     def _map_subscription(self, subscription) -> schemas.Subscription:
         base = schemas.Subscription.model_validate(subscription)
@@ -131,3 +208,12 @@ class ProfileService:
             "декабрь",
         ]
         return f"{names[current.month - 1].capitalize()} {current.year}"
+
+    def _visit_stats(self, visits) -> dict[str, float | int]:
+        total_visits = len(visits)
+        total_seconds = 0
+        for v in visits:
+            if v.exited_at:
+                total_seconds += max(0, int((v.exited_at - v.entered_at).total_seconds()))
+        hours = round(total_seconds / 3600, 2)
+        return {"total_visits": total_visits, "hours": hours}

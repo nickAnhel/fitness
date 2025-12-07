@@ -38,8 +38,12 @@ class TariffModel(Base):
     price: Mapped[Numeric] = mapped_column(Numeric(10, 2), nullable=False)
     is_available: Mapped[bool] = mapped_column(Boolean, default=True)
 
-    tariff_type_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tariff_types.tariff_type_id"))
-    tariff_validity_period_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tariff_validity_periods.tariff_validity_period_id"))
+    tariff_type_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("tariff_types.tariff_type_id", ondelete="CASCADE")
+    )
+    tariff_validity_period_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("tariff_validity_periods.tariff_validity_period_id", ondelete="CASCADE")
+    )
 
     tariff_type: Mapped["TariffTypeModel"] = relationship("TariffTypeModel", back_populates="tariffs")
     validity_period: Mapped["TariffValidityPeriodModel"] = relationship("TariffValidityPeriodModel", back_populates="tariffs")

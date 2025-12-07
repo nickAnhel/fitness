@@ -10,7 +10,6 @@ from src.common.models import Base
 # Ensure association tables/models are registered in metadata before relationship resolution
 from src.employees.models import EmployeeBranchModel  # noqa: F401
 from src.subscriptions.models import SubscriptionModel  # noqa: F401
-from src.visits.models import VisitModel  # noqa: F401
 
 
 class DistrictModel(Base):
@@ -56,7 +55,7 @@ class BranchModel(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     district_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("districts.district_id"), nullable=False
+        ForeignKey("districts.district_id", ondelete="CASCADE"), nullable=False
     )
 
     district: Mapped["DistrictModel"] = relationship(

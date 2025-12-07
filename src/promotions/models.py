@@ -27,7 +27,7 @@ class PromotionModel(Base):
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
-    discount_type_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("discount_types.discount_type_id"))
+    discount_type_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("discount_types.discount_type_id", ondelete="CASCADE"))
 
     discount_type: Mapped["DiscountTypeModel"] = relationship("DiscountTypeModel", back_populates="promotions")
 
@@ -55,8 +55,8 @@ class PromotionBranchModel(Base):
 
     promotion_branch_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
-    promotion_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("promotions.promotion_id"), nullable=False)
-    branch_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("branches.branch_id"), nullable=False)
+    promotion_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("promotions.promotion_id", ondelete="CASCADE"), nullable=False)
+    branch_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("branches.branch_id", ondelete="CASCADE"), nullable=False)
 
     promotion: Mapped["PromotionModel"] = relationship("PromotionModel", back_populates="promotion_branches")
     branch: Mapped["BranchModel"] = relationship("BranchModel")
@@ -67,8 +67,8 @@ class PromotionTariffModel(Base):
 
     promotion_tariff_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
-    promotion_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("promotions.promotion_id"), nullable=False)
-    tariff_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tariffs.tariff_id"), nullable=False)
+    promotion_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("promotions.promotion_id", ondelete="CASCADE"), nullable=False)
+    tariff_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tariffs.tariff_id", ondelete="CASCADE"), nullable=False)
 
     promotion: Mapped["PromotionModel"] = relationship("PromotionModel", back_populates="promotion_tariffs")
     tariff: Mapped["TariffModel"] = relationship("TariffModel")

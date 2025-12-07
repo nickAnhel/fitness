@@ -4,6 +4,9 @@
     <p class="eyebrow">Регистрация</p>
     <h1 class="heading">Создать аккаунт</h1>
     <p class="text-muted">Заполните данные для регистрации</p>
+    {% if error %}
+        <div class="alert alert--error">{{ error }}</div>
+    {% endif %}
     <form class="form" method="post" action="/register">
         <label class="field">
             <span class="field__label">Имя</span>
@@ -12,6 +15,10 @@
         <label class="field">
             <span class="field__label">Фамилия</span>
             <input type="text" name="last_name" placeholder="Иванов" required>
+        </label>
+        <label class="field">
+            <span class="field__label">Логин</span>
+            <input type="text" name="login" placeholder="mylogin" required>
         </label>
         <label class="field">
             <span class="field__label">Электронная почта</span>
