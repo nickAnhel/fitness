@@ -17,6 +17,9 @@ class TariffTypeModel(Base):
 
     tariffs: Mapped[list["TariffModel"]] = relationship("TariffModel", back_populates="tariff_type")
 
+    def __str__(self) -> str:
+        return self.name
+
 
 class TariffValidityPeriodModel(Base):
     __tablename__ = "tariff_validity_periods"
@@ -26,6 +29,9 @@ class TariffValidityPeriodModel(Base):
     duration_days: Mapped[int] = mapped_column(Integer, nullable=False)
 
     tariffs: Mapped[list["TariffModel"]] = relationship("TariffModel", back_populates="validity_period")
+
+    def __str__(self) -> str:
+        return f"{self.duration_days} дней"
 
 
 class TariffModel(Base):
@@ -55,3 +61,6 @@ class TariffModel(Base):
     )
 
     subscriptions: Mapped[list["SubscriptionModel"]] = relationship("SubscriptionModel", back_populates="tariff")
+
+    def __str__(self) -> str:
+        return self.name

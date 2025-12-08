@@ -25,6 +25,9 @@ class RoleModel(Base):
         cascade="all, delete-orphan",
     )
 
+    def __str__(self) -> str:
+        return self.name
+
 
 class EmployeeRoleModel(Base):
     __tablename__ = "employee_roles"
@@ -80,6 +83,9 @@ class EmployeeModel(Base):
         secondary="employee_branches",
         back_populates="employees",
     )
+
+    def __str__(self) -> str:
+        return f"{self.first_name} {self.last_name}".strip()
 
 
 class EmployeeBranchModel(Base):

@@ -25,6 +25,9 @@ class DistrictModel(Base):
         "BranchModel", back_populates="district"
     )
 
+    def __str__(self) -> str:
+        return self.name
+
 
 class DiscountTypeModel(Base):
     __tablename__ = "discount_types"
@@ -38,6 +41,9 @@ class DiscountTypeModel(Base):
     promotions: Mapped[list["PromotionModel"]] = relationship(
         "PromotionModel", back_populates="discount_type"
     )
+
+    def __str__(self) -> str:
+        return self.name
 
 
 class BranchModel(Base):
@@ -76,3 +82,6 @@ class BranchModel(Base):
     promotions: Mapped[list["PromotionModel"]] = relationship(
         "PromotionModel", secondary="promotion_branches", back_populates="branches"
     )
+
+    def __str__(self) -> str:
+        return self.name

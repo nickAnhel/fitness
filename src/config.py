@@ -33,6 +33,7 @@ class ProjectSettings(ConfigBase):
     description: str
     version: str
     debug: bool
+    session_secret: str = Field(default="change-me")
 
     model_config = SettingsConfigDict(env_prefix="project_")
 

@@ -21,6 +21,9 @@ class SubscriptionStatusModel(Base):
 
     subscriptions: Mapped[list["SubscriptionModel"]] = relationship("SubscriptionModel", back_populates="status")
 
+    def __str__(self) -> str:
+        return self.name
+
 
 class SubscriptionModel(Base):
     __tablename__ = "subscriptions"

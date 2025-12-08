@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-import hashlib
 import uuid
 from datetime import datetime, timedelta
 
 from src.auth.repository import AuthRepository
 from src.users.models import UserModel
+from src.common.security import hash_password
 
 SESSION_COOKIE_NAME = "session_id"
 SESSION_TTL_DAYS = 14
@@ -25,7 +25,7 @@ class AuthService:
         password: str,
         phone: str | None = None,
     ) -> UserModel:
-        password_hash = self._hash_password(password)
+        password_hash = hash_password(password)
         return await self.repository.create_user(
             first_name=first_name,
             last_name=last_name,
@@ -39,7 +39,7 @@ class AuthService:
         user = await self.repository.get_user_by_login_or_email(identifier)
         if not user:
             return None
-        if user.password_hash != self._hash_password(password):
+        if user.password_hash != hash_password(password):
             return None
         if user.is_blocked:
             return None
@@ -61,6 +61,3 @@ class AuthService:
 
     async def logout(self, session_id: uuid.UUID) -> None:
         await self.repository.delete_session(session_id)
-
-    def _hash_password(self, password: str) -> str:
-        return hashlib.sha256(password.encode("utf-8")).hexdigest()

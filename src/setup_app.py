@@ -2,12 +2,17 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.sessions import (
+    SessionMiddleware as StarletteSessionMiddleware,
+)
 
+from src.admin import setup_admin_panel
 from src.auth import auth_router
 from src.auth.middleware import SessionMiddleware
 from src.branches.router import router as branches_router
-from src.promotions.router import router as promotions_router
+from src.config import settings
 from src.profile import profile_router
+from src.promotions.router import router as promotions_router
 from src.public.router import router as public_router
 from src.tariffs.router import router as tariffs_router
 from src.visits.router import router as visits_router
@@ -26,5 +31,7 @@ def register_routes(app: FastAPI) -> None:
 def setup_app(app: FastAPI) -> None:
     static_path = Path(__file__).resolve().parent / "static"
     app.mount("/static", StaticFiles(directory=static_path), name="static")
+    app.add_middleware(StarletteSessionMiddleware, secret_key=settings.project.session_secret)
     app.add_middleware(SessionMiddleware)
     register_routes(app)
+    setup_admin_panel(app)

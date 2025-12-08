@@ -28,3 +28,6 @@ class UserModel(Base):
 
     subscriptions: Mapped[list["SubscriptionModel"]] = relationship("SubscriptionModel", back_populates="user")
     visits: Mapped[list["VisitModel"]] = relationship("VisitModel", back_populates="user")
+
+    def __str__(self) -> str:
+        return f"{self.first_name} {self.last_name}".strip()
