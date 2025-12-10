@@ -206,20 +206,62 @@
         <form method="post" action="/profile/subscriptions" class="form">
             <label class="field">
                 <span class="field__label">Филиал</span>
-                <select name="branch_id" required>
+                <select name="branch_id" id="branch-select" required>
                     {% for branch in branches %}
-                        <option value="{{ branch.branch_id }}">{{ branch.name }}</option>
+                        <option value="{{ branch.branch_id }}"
+                                data-address="{{ branch.address }}"
+                                data-contacts="{{ branch.contacts or '' }}"
+                                data-hours="{{ branch.operating_hours or '' }}"
+                                data-district="{{ branch.district.name }}">
+                            {{ branch.name }}
+                        </option>
                     {% endfor %}
                 </select>
             </label>
+            <div class="selection-info" id="branch-info" aria-live="polite">
+                <div class="selection-info__title">Информация о филиале</div>
+                <div class="selection-info__grid">
+                    <div>
+                        <div class="meta">Адрес</div>
+                        <div class="selection-info__value" id="branch-address">Выберите филиал, чтобы увидеть детали</div>
+                    </div>
+                    <div>
+                        <div class="meta">Район</div>
+                        <div class="selection-info__value" id="branch-district">—</div>
+                    </div>
+                    <div>
+                        <div class="meta">Контакты</div>
+                        <div class="selection-info__value" id="branch-contacts">—</div>
+                    </div>
+                    <div>
+                        <div class="meta">Часы работы</div>
+                        <div class="selection-info__value" id="branch-hours">—</div>
+                    </div>
+                </div>
+            </div>
             <label class="field">
                 <span class="field__label">Тариф</span>
-                <select name="tariff_id" required>
+                <select name="tariff_id" id="tariff-select" required>
                     {% for tariff in tariffs %}
-                        <option value="{{ tariff.tariff_id }}">{{ tariff.name }} — {{ tariff.price }} ₽</option>
+                        <option value="{{ tariff.tariff_id }}"
+                                data-price="{{ tariff.price }}"
+                                data-duration="{{ tariff.validity_period.duration_days }}"
+                                data-type="{{ tariff.tariff_type.name }}"
+                                data-description="{{ tariff.description or '' }}">
+                            {{ tariff.name }}
+                        </option>
                     {% endfor %}
                 </select>
             </label>
+            <div class="selection-info" id="tariff-info" aria-live="polite">
+                <div class="selection-info__title">Информация о тарифе</div>
+                <p class="text-muted" id="tariff-description">Выберите тариф, чтобы увидеть описание.</p>
+                <div class="selection-info__meta">
+                    <span class="pill pill--muted" id="tariff-type">Тип: —</span>
+                    <span class="pill pill--muted" id="tariff-duration">Срок: —</span>
+                    <span class="pill" id="tariff-price">Цена: —</span>
+                </div>
+            </div>
             <label class="field">
                 <span class="field__label">Дата начала</span>
                 <input type="date" name="start_date" id="start_date_field" required>
@@ -238,8 +280,7 @@
         <div class="modal__header">
             <div>
                 <p class="eyebrow">Подтверждение</p>
-                <h3 class="section-title" id="confirm-modal-title">Вы уверены?</h3>
-            </div>
+                <h3 class="section-title" id="confirm-modal-title">           </div>
             <button class="btn btn--ghost" type="button" aria-label="Закрыть" onclick="closeConfirm()">X</button>
         </div>
         <p class="text-muted" id="confirm-modal-message">Подтвердите действие.</p>
@@ -285,6 +326,47 @@
         const today = new Date().toISOString().split('T')[0];
         startDateField.value = today;
         startDateField.min = today;
+    }
+
+    const branchSelect = document.getElementById('branch-select');
+    const tariffSelect = document.getElementById('tariff-select');
+
+    function updateBranchInfo() {
+        const addressEl = document.getElementById('branch-address');
+        const districtEl = document.getElementById('branch-district');
+        const contactsEl = document.getElementById('branch-contacts');
+        const hoursEl = document.getElementById('branch-hours');
+        if (!branchSelect || !addressEl || !districtEl || !contactsEl || !hoursEl) return;
+        const option = branchSelect.selectedOptions[0];
+        if (!option) return;
+        addressEl.textContent = option.dataset.address || "Адрес не указан";
+        districtEl.textContent = option.dataset.district || "—";
+        contactsEl.textContent = option.dataset.contacts || "—";
+        hoursEl.textContent = option.dataset.hours || "—";
+    }
+
+    function updateTariffInfo() {
+        const descriptionEl = document.getElementById('tariff-description');
+        const typeEl = document.getElementById('tariff-type');
+        const durationEl = document.getElementById('tariff-duration');
+        const priceEl = document.getElementById('tariff-price');
+        if (!tariffSelect || !descriptionEl || !typeEl || !durationEl || !priceEl) return;
+        const option = tariffSelect.selectedOptions[0];
+        if (!option) return;
+        const desc = option.dataset.description && option.dataset.description.trim();
+        descriptionEl.textContent = desc || "Описание появится позже.";
+        typeEl.textContent = option.dataset.type ? `Тип: ${option.dataset.type}` : "Тип: —";
+        durationEl.textContent = option.dataset.duration ? `Срок: ${option.dataset.duration} дней` : "Срок: —";
+        priceEl.textContent = option.dataset.price ? `Цена: ${option.dataset.price} ₽` : "Цена: —";
+    }
+
+    if (branchSelect) {
+        branchSelect.addEventListener('change', updateBranchInfo);
+        updateBranchInfo();
+    }
+    if (tariffSelect) {
+        tariffSelect.addEventListener('change', updateTariffInfo);
+        updateTariffInfo();
     }
 
     let confirmTarget = null;
