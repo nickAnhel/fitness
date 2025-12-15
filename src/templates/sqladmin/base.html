@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="{{ url_for('admin:statics', path='css/select2.min.css') }}">
   <link rel="stylesheet" href="{{ url_for('admin:statics', path='css/flatpickr.min.css') }}">
   <link rel="stylesheet" href="{{ url_for('admin:statics', path='css/main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', path='admin.css') }}">
   {% if admin.favicon_url %}
   <link rel="icon" href="{{ admin.favicon_url }}">
   {% endif %}
@@ -18,7 +19,7 @@
   <title>{{ admin.title }}</title>
 </head>
 
-<body>
+<body class="admin-theme">
   {% block body %}
   <main>
     {% block main %}

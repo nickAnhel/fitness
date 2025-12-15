@@ -27,17 +27,6 @@ from src.visits.models import VisitModel
 TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
 
 
-def _render_relations(rel) -> str:
-    """Render many-to-many relations; return an em dash if unavailable."""
-    try:
-        items = list(rel or [])
-    except DetachedInstanceError:
-        return "—"
-    except Exception:
-        return "—"
-    return ", ".join(str(item) for item in items) or "—"
-
-
 class BaseAdminView(ModelView):
     page_size = 50
     column_display_pk = False
@@ -733,7 +722,7 @@ def setup_admin_panel(app: FastAPI) -> None:
     admin = Admin(
         app,
         engine=async_engine,
-        title="Админка Fitness",
+        title="Fitness.Админ",
         templates_dir=str(TEMPLATES_DIR),
         authentication_backend=AdminAuth(settings.project.session_secret),
     )
