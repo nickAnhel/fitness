@@ -17,6 +17,7 @@ from src.common.security import hash_password
 from src.config import settings
 from src.employees.models import EmployeeModel, EmployeeRoleModel, RoleModel
 from src.promotions.models import PromotionModel
+from src.notifications.service import notify_new_promotion, notify_subscription_created, notify_subscription_status_change
 from src.subscriptions.models import SubscriptionModel, SubscriptionStatusModel
 from src.tariffs.models import TariffModel, TariffTypeModel, TariffValidityPeriodModel
 from src.users.models import UserModel
@@ -244,7 +245,7 @@ class PromotionAdmin(BaseAdminView, model=PromotionModel):
     name = "Акция"
     name_plural = "Акции"
     category = "Акции"
-    can_delete = False
+    can_delete = True
     column_list = [
         PromotionModel.name,
         PromotionModel.starts_at,
@@ -274,12 +275,12 @@ class PromotionAdmin(BaseAdminView, model=PromotionModel):
         PromotionModel.discount_type.key: "Тип скидки",
         PromotionModel.description.key: "Описание",
         PromotionModel.usage_limit.key: "Лимит использований",
-        PromotionModel.promotion_branches: "Филиалы",
-        PromotionModel.promotion_tariffs: "Тарифы",
+        PromotionModel.branches: "Филиалы",
+        PromotionModel.tariffs: "Тарифы",
     }
     form_excluded_columns = [
-        PromotionModel.branches,
-        PromotionModel.tariffs,
+        PromotionModel.promotion_branches,
+        PromotionModel.promotion_tariffs,
         PromotionModel.promotion_id,
     ]
     column_filters = [
@@ -303,6 +304,12 @@ class PromotionAdmin(BaseAdminView, model=PromotionModel):
             selectinload(PromotionModel.tariffs),
             selectinload(PromotionModel.discount_type),
         )
+
+    async def insert_model(self, request, data):  # type: ignore[override]
+        promotion = await super().insert_model(request, data)
+        if promotion:
+            await notify_new_promotion(promotion.promotion_id)
+        return promotion
 
 
 class SubscriptionStatusAdmin(BaseAdminView, model=SubscriptionStatusModel):
@@ -385,6 +392,24 @@ class SubscriptionAdmin(BaseAdminView, model=SubscriptionModel):
     async def is_accessible(self, request: Request) -> bool:  # type: ignore[override]
         roles = set(request.session.get("roles", []))
         return ADMIN_ROLE in roles or LOCAL_ADMIN_ROLE in roles
+
+    async def insert_model(self, request, data):  # type: ignore[override]
+        subscription = await super().insert_model(request, data)
+        if subscription:
+            await notify_subscription_created(subscription.subscription_id)
+        return subscription
+
+    async def update_model(self, request, pk, data):  # type: ignore[override]
+        previous_status = None
+        async with async_session_maker() as session:
+            stmt = select(SubscriptionModel.subscription_status_id).where(SubscriptionModel.subscription_id == pk)
+            result = await session.execute(stmt)
+            previous_status = result.scalar_one_or_none()
+
+        subscription = await super().update_model(request, pk, data)
+        if subscription and subscription.subscription_status_id != previous_status:
+            await notify_subscription_status_change(subscription.subscription_id)
+        return subscription
 
 
 class VisitAdmin(BaseAdminView, model=VisitModel):

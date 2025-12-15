@@ -173,7 +173,7 @@ class ProfileRepository:
 
     async def set_subscription_status(
         self, user_id: uuid.UUID, subscription_id: uuid.UUID, status_id: uuid.UUID
-    ) -> bool:
+    ) -> SubscriptionModel | None:
         stmt = select(SubscriptionModel).where(
             SubscriptionModel.subscription_id == subscription_id,
             SubscriptionModel.user_id == user_id,
@@ -181,10 +181,24 @@ class ProfileRepository:
         result = await self.session.execute(stmt)
         subscription = result.scalars().first()
         if not subscription:
-            return False
+            return None
         subscription.subscription_status_id = status_id
         await self.session.commit()
-        return True
+        return await self.get_subscription_with_relations(subscription.subscription_id)
+
+    async def get_subscription_with_relations(self, subscription_id: uuid.UUID) -> SubscriptionModel | None:
+        stmt = (
+            select(SubscriptionModel)
+            .options(
+                selectinload(SubscriptionModel.user),
+                selectinload(SubscriptionModel.branch),
+                selectinload(SubscriptionModel.tariff),
+                selectinload(SubscriptionModel.status),
+            )
+            .where(SubscriptionModel.subscription_id == subscription_id)
+        )
+        result = await self.session.execute(stmt)
+        return result.scalars().first()
 
     async def list_visits(
         self, user_id: uuid.UUID, month: date | None = None, branch_id: uuid.UUID | None = None

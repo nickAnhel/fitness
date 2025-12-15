@@ -6,6 +6,7 @@ from collections import defaultdict
 from datetime import date, datetime, timedelta
 
 from src.branches import schemas as branch_schemas
+from src.notifications.service import notify_subscription_created, notify_subscription_status_change
 from src.profile import schemas
 from src.profile.repository import ProfileRepository
 from src.tariffs import schemas as tariff_schemas
@@ -103,6 +104,7 @@ class ProfileService:
             status_id=status.subscription_status_id,
             start_date=start_date,
         )
+        await notify_subscription_created(subscription.subscription_id)
         return self._map_subscription(subscription), None
 
     async def delete_visit(self, user_id: uuid.UUID, visit_id: uuid.UUID) -> bool:
@@ -118,11 +120,14 @@ class ProfileService:
         cancel_status = await self.repository.get_status_by_name("Отменен")
         if not cancel_status:
             return False
-        return await self.repository.set_subscription_status(
+        updated = await self.repository.set_subscription_status(
             user_id=user_id,
             subscription_id=subscription_id,
             status_id=cancel_status.subscription_status_id,
         )
+        if updated is not None:
+            await notify_subscription_status_change(updated.subscription_id)
+        return bool(updated)
 
 
     def _map_subscription(self, subscription) -> schemas.Subscription:
