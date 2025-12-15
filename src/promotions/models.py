@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import date
-from sqlalchemy import String, Boolean, Date, Numeric, Integer, ForeignKey
+from sqlalchemy import String, Boolean, Date, Numeric, Integer, ForeignKey, inspect as sa_inspect
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -49,6 +49,9 @@ class PromotionModel(Base):
         "PromotionTariffModel", back_populates="promotion"
     )
 
+    def __str__(self) -> str:
+        return self.name
+
 
 class PromotionBranchModel(Base):
     __tablename__ = "promotion_branches"
@@ -61,6 +64,13 @@ class PromotionBranchModel(Base):
     promotion: Mapped["PromotionModel"] = relationship("PromotionModel", back_populates="promotion_branches")
     branch: Mapped["BranchModel"] = relationship("BranchModel")
 
+    def __str__(self) -> str:
+        inspector = sa_inspect(self)
+        if "branch" in inspector.unloaded:
+            return "Филиал акции"
+        branch_name = getattr(self.branch, "name", None)
+        return branch_name or "Филиал акции"
+
 
 class PromotionTariffModel(Base):
     __tablename__ = "promotion_tariffs"
@@ -72,3 +82,10 @@ class PromotionTariffModel(Base):
 
     promotion: Mapped["PromotionModel"] = relationship("PromotionModel", back_populates="promotion_tariffs")
     tariff: Mapped["TariffModel"] = relationship("TariffModel")
+
+    def __str__(self) -> str:
+        inspector = sa_inspect(self)
+        if "tariff" in inspector.unloaded:
+            return "Тариф акции"
+        tariff_name = getattr(self.tariff, "name", None)
+        return tariff_name or "Тариф акции"

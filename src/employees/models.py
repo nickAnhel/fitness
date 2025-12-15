@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 
-from sqlalchemy import DateTime, ForeignKey, String
+from sqlalchemy import DateTime, ForeignKey, String, inspect as sa_inspect
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -54,6 +54,17 @@ class EmployeeRoleModel(Base):
         back_populates="employee_roles",
     )
 
+    def __str__(self) -> str:
+        try:
+            insp = sa_inspect(self)
+            if "role" in getattr(insp, "unloaded", set()):
+                return "Назначение"
+        except Exception:
+            # Fallback to best-effort access
+            pass
+        role = getattr(self, "role", None)
+        return str(role) if role else "Назначение"
+
 
 class EmployeeModel(Base):
     __tablename__ = "employees"
@@ -83,6 +94,12 @@ class EmployeeModel(Base):
         secondary="employee_branches",
         back_populates="employees",
     )
+
+    # roles: Mapped[list["RoleModel"]] = relationship(
+    #     "RoleModel",
+    #     secondary="employee_roles",
+    #     back_populates="employees",
+    # )
 
     def __str__(self) -> str:
         return f"{self.first_name} {self.last_name}".strip()

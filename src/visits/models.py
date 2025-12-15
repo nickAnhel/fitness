@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey
+from sqlalchemy import DateTime, ForeignKey, inspect as sa_inspect
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -23,3 +23,18 @@ class VisitModel(Base):
 
     user: Mapped["UserModel"] = relationship("UserModel", back_populates="visits")
     branch: Mapped["BranchModel"] = relationship("BranchModel", back_populates="visits")
+
+    def __str__(self) -> str:
+        inspector = sa_inspect(self)
+
+        def safe_rel_name(rel_name: str, attr: str = "name") -> str | None:
+            if rel_name in inspector.unloaded:
+                return None
+            rel_obj = getattr(self, rel_name, None)
+            return getattr(rel_obj, attr, None) if rel_obj else None
+
+        branch_name = safe_rel_name("branch")
+        entered = self.entered_at.strftime("%Y-%m-%d %H:%M") if self.entered_at else None
+
+        parts = [p for p in (branch_name, entered) if p]
+        return " · ".join(parts) if parts else "Посещение"

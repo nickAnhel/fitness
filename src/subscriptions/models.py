@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import date
 
-from sqlalchemy import Date, ForeignKey, String
+from sqlalchemy import Date, ForeignKey, String, inspect as sa_inspect
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -43,3 +43,22 @@ class SubscriptionModel(Base):
     branch: Mapped["BranchModel"] = relationship("BranchModel", back_populates="subscriptions")
     tariff: Mapped["TariffModel"] = relationship("TariffModel", back_populates="subscriptions")
     status: Mapped["SubscriptionStatusModel"] = relationship("SubscriptionStatusModel", back_populates="subscriptions")
+
+    def __str__(self) -> str:
+        inspector = sa_inspect(self)
+
+        def safe_rel_name(rel_name: str, attr: str = "name") -> str | None:
+            if rel_name in inspector.unloaded:
+                return None
+            rel_obj = getattr(self, rel_name, None)
+            return getattr(rel_obj, attr, None) if rel_obj else None
+
+        tariff_name = safe_rel_name("tariff")
+        branch_name = safe_rel_name("branch")
+        status_name = safe_rel_name("status")
+
+        parts = [p for p in (tariff_name, branch_name) if p]
+        if not parts and status_name:
+            parts.append(status_name)
+
+        return " · ".join(parts) if parts else "Абонемент"

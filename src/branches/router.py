@@ -36,7 +36,7 @@ async def list_branches(
     request: Request,
     district_id: str | None = Query(default=None),
     page: int = Query(default=1, ge=1),
-    per_page: int = Query(default=5, ge=1, le=50),
+    per_page: int = Query(default=10, ge=1, le=50),
     service: BranchService = Depends(get_branch_service),
 ) -> HTMLResponse:
     data = await service.get_branches(

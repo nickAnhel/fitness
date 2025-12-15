@@ -16,7 +16,7 @@ class TariffService:
         tariff_type_id: uuid.UUID | None = None,
         validity_period_id: uuid.UUID | None = None,
         page: int = 1,
-        per_page: int = 5,
+        per_page: int = 10,
     ) -> dict[str, object]:
         tariff_types = await self.repository.list_tariff_types()
         validity_periods = await self.repository.list_validity_periods()

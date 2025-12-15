@@ -20,3 +20,7 @@ class SessionModel(Base):
     expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
     user: Mapped["UserModel"] = relationship("UserModel")
+
+    def __str__(self) -> str:
+        user_name = getattr(self.user, "login", None) or getattr(self.user, "email", None)
+        return f"Сессия {user_name}" if user_name else "Сессия"

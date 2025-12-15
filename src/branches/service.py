@@ -15,7 +15,7 @@ class BranchService:
         self,
         district_id: uuid.UUID | None = None,
         page: int = 1,
-        per_page: int = 5,
+        per_page: int = 10,
     ) -> dict[str, object]:
         districts = await self.repository.list_districts()
         total = await self.repository.count_branches(district_id=district_id)

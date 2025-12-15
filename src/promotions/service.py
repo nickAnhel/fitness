@@ -17,7 +17,7 @@ class PromotionService:
         discount_type_id: uuid.UUID | None = None,
         active_only: bool = True,
         page: int = 1,
-        per_page: int = 5,
+        per_page: int = 10,
     ) -> dict[str, object]:
         discount_types = await self.repository.list_discount_types()
         total = await self.repository.count_promotions(
